@@ -13,7 +13,7 @@ pip install labelme
 ```
 
 方式二：anconda虚拟环境<br>
-// base环境测试成功（不用conda create新环境）
+// base环境测试成功（不用conda create新环境）<br>
 ```pip install -i https://pypi.tuna.tsinghua.edu.cn/simple/ PyQt5 labelme```
 
 ## labelme使用
