@@ -5,18 +5,20 @@ import skimage.io as io
 import cv2
 #from labelme import utils
 #
-from image import img_b64_to_arr   #image.py是自己创建的py文件
+from image import img_b64_to_arr   
 #
 import numpy as np
 import glob
 import PIL.Image
 import PIL.ImageDraw
 
+import os
+
 class labelme2coco(object):
     def __init__(self,labelme_json=[],save_json_path='./new.json'):
         '''
-        :param labelme_json: 所有labelme的json文件路径组成的列表
-        :param save_json_path: json保存位置
+        Args: labelme_json: paths of labelme json files
+        : save_json_path: saved path 
         '''
         self.labelme_json=labelme_json
         self.save_json_path=save_json_path
@@ -35,32 +37,28 @@ class labelme2coco(object):
         for num,json_file in enumerate(self.labelme_json):
             with open(json_file,'r') as fp:
                 data = json.load(fp)  
-                self.images.append(self.image(data,num))
+                (prefix, res) = os.path.split(json_file)
+                (file_name, extension ) = os.path.splitext(res)
+                self.images.append(self.image(data,num,file_name))
                 for shapes in data['shapes']:
                     label=shapes['label']
-                    ## label format：car （without supercategory imformation）
                     if label not in self.label:
                         self.categories.append(self.categorie(label))
                         self.label.append(label)
-                    ## label format: vehicle_car (with supercategory imformation）
-                    # label=shapes['label'].split('_')
-                    # if label[1] not in self.label:
-                    #     self.categories.append(self.categorie(label))
-                    #     self.label.append(label[1])
                     points=shapes['points']
                     self.annotations.append(self.annotation(points,label,num))
                     self.annID+=1
 
-    def image(self,data,num):
+    def image(self,data,num,file_name):
         image={}
-        img = img_b64_to_arr(data['imageData'])  # 解析原图片数据
- 
+        img = img_b64_to_arr(data['imageData']) 
+        
         height, width = img.shape[:2]
         img = None
         image['height']=height
         image['width'] = width
         image['id']= int(num+1)
-        image['file_name'] = data['imagePath'].split('/')[-1]
+        image['file_name'] = file_name + '.jpg'
 
         self.height=height
         self.width=width
@@ -69,35 +67,30 @@ class labelme2coco(object):
 
     def categorie(self,label):
         categorie={}
-        # categorie['supercategory'] = label[0]
-        # categorie['id']=len(self.label)+1 #  default : 0 represents background
-        # categorie['name'] = label[1]
         categorie['supercategory'] = label
-        categorie['id']= int(len(self.label)+1) #  default : 0 represents background
+        categorie['id']= int(len(self.label)+1) 
         categorie['name'] = label
 
         return categorie
 
     def annotation(self,points,label,num):
         annotation={}
-        #由点形成segmentation
-        #annotation['segmentation']=[list(np.asarray(points).flatten())]
         annotation['iscrowd'] = 0
         annotation['image_id'] = int(num+1)
 
         annotation['bbox'] = list(map(float,self.getbbox(points)))
 
-        #由bbox形成segmentation
+        # coarsely from bbox to segmentation
         x =  annotation['bbox'][0]
         y =  annotation['bbox'][1]
         w =  annotation['bbox'][2]
         h =  annotation['bbox'][3]
-        annotation['segmentation']=[[x,y,x+w,y,x+w,y+h,x,y+h]]
+        annotation['segmentation']=[[x,y,x+w,y,x+w,y+h,x,y+h]] # at least 6 points
 
         annotation['category_id'] = self.getcatid(label)
         annotation['id'] = int(self.annID)
         #add area info
-        annotation['area'] = self.height * self.width  # 这里用了原图的长和宽，并不是bbox的面积；但对检测任务不影响
+        annotation['area'] = self.height * self.width  #  the area is not used for detection 
         return annotation
 
     def getcatid(self,label):
@@ -110,33 +103,25 @@ class labelme2coco(object):
 
     def getbbox(self,points):
         # img = np.zeros([self.height,self.width],np.uint8)
-        # cv2.polylines(img, [np.asarray(points)], True, 1, lineType=cv2.LINE_AA)  # 画边界线
-        # cv2.fillPoly(img, [np.asarray(points)], 1)  # 画多边形 内部像素值为1
+        # cv2.polylines(img, [np.asarray(points)], True, 1, lineType=cv2.LINE_AA)  
+        # cv2.fillPoly(img, [np.asarray(points)], 1)  
         polygons = points
         mask = self.polygons_to_mask([self.height,self.width], polygons)
         return self.mask2box(mask)
 
     def mask2box(self, mask):
-        '''从mask反算出其边框
-        mask：[h,w]  0、1组成的图片
-        1对应对象，只需计算1对应的行列号（左上角行列号，右下角行列号，就可以算出其边框）
-        '''
         # np.where(mask==1)
         index = np.argwhere(mask == 1)
         rows = index[:, 0]
         clos = index[:, 1]
-        # 解析左上角行列号
+        
         left_top_r = np.min(rows)  # y
         left_top_c = np.min(clos)  # x
 
-        # 解析右下角行列号
         right_bottom_r = np.max(rows)
         right_bottom_c = np.max(clos)
 
-        # return [(left_top_r,left_top_c),(right_bottom_r,right_bottom_c)]
-        # return [(left_top_c, left_top_r), (right_bottom_c, right_bottom_r)]
-        # return [left_top_c, left_top_r, right_bottom_c, right_bottom_r]  # [x1,y1,x2,y2]
-        return [left_top_c, left_top_r, right_bottom_c-left_top_c, right_bottom_r-left_top_r]  # [x1,y1,w,h] 对应COCO的bbox格式
+        return [left_top_c, left_top_r, right_bottom_c-left_top_c, right_bottom_r-left_top_r]  # [x1,y1,w,h] for coco box format
 
     def polygons_to_mask(self,img_shape, polygons):
         mask = np.zeros(img_shape, dtype=np.uint8)
@@ -156,9 +141,10 @@ class labelme2coco(object):
     def save_json(self):
         self.data_transfer()
         self.data_coco = self.data2coco()
-        # 保存json文件
-        json.dump(self.data_coco, open(self.save_json_path, 'w', encoding='utf-8'), indent=4, separators=(',', ': '), cls=MyEncoder)
  
+        json.dump(self.data_coco, open(self.save_json_path, 'w', encoding='utf-8'), indent=4, separators=(',', ': '), cls=MyEncoder)
+
+# type check when save json files
 class MyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
@@ -170,7 +156,7 @@ class MyEncoder(json.JSONEncoder):
         else:
             return super(MyEncoder, self).default(obj)
 
-# you need to modify the  path 
+# you need to modify the path according to your environment
 labelme_json=glob.glob('train/*.json')
 
 labelme2coco(labelme_json,'annotations/train.json')
