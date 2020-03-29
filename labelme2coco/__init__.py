@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from labelme2coco.labelme2coco import labelme2coco
 
