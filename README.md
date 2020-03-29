@@ -1,4 +1,4 @@
-[![PyPI version](https://badge.fury.io/py/labelme2coco.svg)](https://badge.fury.io/py/craft-text-detector)
+[![PyPI version](https://badge.fury.io/py/labelme2coco.svg)](https://badge.fury.io/py/labelme2coco)
 ![CI](https://github.com/fcakyon/labelme2coco/workflows/CI/badge.svg)
 
 ## labelme2coco python package for Linux/MacOS/Windows
