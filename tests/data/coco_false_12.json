@@ -1,0 +1,1 @@
+{"images": [{"file_name": "data/midv500/images/example1.tif", "id": 1}, {"file_name": "data/midv500/images/example2.tif", "id": 2}], "annotations": {"image_id": 1, "category_id": 1, "segmentation": [[1, 2, 3, 4, 5, 6]]}, "categories": [{"name": "id_card", "id": 1}, {"name": "person", "id": 2}]}

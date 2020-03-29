@@ -1,0 +1,1 @@
+{"annotations": [{"image_id": 1, "category_id": 1, "segmentation": [[1, 2, 3, 4, 5, 6]]}, {"image_id": 1, "category_id": 2, "segmentation": [[1, 2, 3, 4, 5, 6]]}, {"image_id": 2, "category_id": 1, "segmentation": [[1, 2, 3, 4, 5, 6]]}], "categories": [{"name": "id_card", "id": 1}, {"name": "person", "id": 2}]}
