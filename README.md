@@ -9,8 +9,6 @@
 However, widely used frameworks/models such as Yolact/Solo, Detectron, MMDetection etc. requires COCO formatted annotations.
 You can use this package to convert labelme annotations to COCO format.
 
-#<img width="1000" alt="teaser" src="./figures/midv500.png">
-
 ## Getting started
 ### Installation
 ```console
