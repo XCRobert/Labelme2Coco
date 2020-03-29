@@ -7,6 +7,7 @@
 ## Convert LabelMe annotations to COCO format in one step
 [Labelme](https://github.com/wkentaro/labelme) is a widely used is a graphical image annotation tool that supports classification, segmentation, isntance segmentation and object detection formats.
 However, widely used frameworks/models such as Yolact/Solo, Detectron, MMDetection etc. requires COCO formatted annotations.
+
 You can use this package to convert labelme annotations to COCO format.
 
 ## Getting started
