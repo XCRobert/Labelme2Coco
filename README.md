@@ -1,8 +1,7 @@
 [![PyPI version](https://badge.fury.io/py/labelme2coco.svg)](https://badge.fury.io/py/labelme2coco)
 ![CI](https://github.com/fcakyon/labelme2coco/workflows/CI/badge.svg)
 
-## labelme2coco python package for Linux/MacOS/Windows
- **Package maintainer: Fatih Cagatay Akyon**
+# labelme2coco Python Package for Linux/MacOS/Windows
 
 ## Convert LabelMe annotations to COCO format in one step
 [Labelme](https://github.com/wkentaro/labelme) is a widely used is a graphical image annotation tool that supports classification, segmentation, isntance segmentation and object detection formats.
