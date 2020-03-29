@@ -12,7 +12,7 @@ class labelme2coco(object):
         """
         Args:
             labelme_folder: folder that contains labelme annotations and image files
-            save_json_path: oath for coco json to be saved
+            save_json_path: path for coco json to be saved
         """
         self.save_json_path = save_json_path
         self.images = []
