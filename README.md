@@ -1,5 +1,5 @@
-[![PyPI version](https://badge.fury.io/py/midv500.svg)](https://badge.fury.io/py/craft-text-detector)
-![CI](https://github.com/fcakyon/midv500/workflows/CI/badge.svg)
+[![PyPI version](https://badge.fury.io/py/labelme2coco.svg)](https://badge.fury.io/py/craft-text-detector)
+![CI](https://github.com/fcakyon/labelme2coco/workflows/CI/badge.svg)
 
 ## labelme2coco python package for Linux/MacOS/Windows
  **Package maintainer: Fatih Cagatay Akyon**
@@ -11,7 +11,7 @@ You can use this package to convert labelme annotations to COCO format.
 
 ## Getting started
 ### Installation
-```console
+```
 pip install labelme2coco
 ```
 
