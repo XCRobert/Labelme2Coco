@@ -5,7 +5,7 @@
 Make your own dataset for object detection/instance segmentation using [labelme](https://github.com/wkentaro/labelme) and transform the format to coco json format 
 
 ## Convert LabelMe annotations to COCO format in one step
-[labelme](https://github.com/wkentaro/labelme) is a widely used is a graphical image annotation tool that supports classification, segmentation, isntance segmentation and object detection formats.
+[labelme](https://github.com/wkentaro/labelme) is a widely used is a graphical image annotation tool that supports classification, segmentation, instance segmentation and object detection formats.
 However, widely used frameworks/models such as Yolact/Solo, Detectron, MMDetection etc. requires COCO formatted annotations.
 
 You can use this package to convert labelme annotations to COCO format.
@@ -27,7 +27,7 @@ labelme_folder = "tests/data/labelme_annot"
 # set path for coco json to be saved
 save_json_path = "tests/data/test_coco.json"
 
-# conert labelme annotations to coco
+# convert labelme annotations to coco
 labelme2coco.convert(labelme_folder, save_json_path)
 ```
 
