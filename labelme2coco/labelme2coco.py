@@ -88,7 +88,7 @@ class labelme2coco(object):
         y = annotation['bbox'][1]
         w = annotation['bbox'][2]
         h = annotation['bbox'][3]
-        annotation['segmentation'] = [[x, y, x+w, y, x+w, y+h, x, y+h]] # at least 6 points
+        annotation['segmentation'] = [np.asarray(points).flatten().tolist()]
 
         annotation['category_id'] = self.getcatid(label)
         annotation['id'] = int(self.annID)

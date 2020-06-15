@@ -31,7 +31,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(test_coco["annotations"][1]["bbox"][1], 96.0)
         self.assertEqual(test_coco["annotations"][1]["id"], 2)
         self.assertEqual(test_coco["annotations"][1]["category_id"], 1)
-        self.assertEqual(test_coco["annotations"][1]["segmentation"][0][2], 108.0)
+        self.assertEqual(test_coco["annotations"][1]["segmentation"][0][2], 0.9361702127659877)
         self.assertEqual(len(test_coco["annotations"]), 3)
         self.assertEqual(test_coco["images"][0]["height"], 375)
         self.assertEqual(len(test_coco["images"]), 1)
