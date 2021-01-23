@@ -1,3 +1,4 @@
+[![Downloads](https://pepy.tech/badge/labelme2coco/month)](https://pepy.tech/project/labelme2coco)
 [![PyPI version](https://badge.fury.io/py/labelme2coco.svg)](https://badge.fury.io/py/labelme2coco)
 ![CI](https://github.com/fcakyon/labelme2coco/workflows/CI/badge.svg)
 
