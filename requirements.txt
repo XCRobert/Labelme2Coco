@@ -1,3 +1,2 @@
-numpy>=1.15.1
-pillow>=4.3.0
+sahi==0.8.16
 jsonschema>=2.6.0

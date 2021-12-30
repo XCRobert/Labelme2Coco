@@ -60,3 +60,7 @@ jobs:
     - name: Test with unittest
       run: |
         python -m unittest
+    - name: Test CLI
+      run: |
+        pip install .
+        labelme2coco tests/data/labelme_annot --train_split_rate 0.85

@@ -1,167 +1,94 @@
-import os
-import json
-import PIL.Image
-import PIL.ImageDraw
+from pathlib import Path
+from typing import List
+
 import numpy as np
-from labelme2coco.utils import create_dir, list_jsons_recursively
-from labelme2coco.image_utils import read_image_shape_as_dict
+from PIL import Image
+from sahi.utils.coco import Coco, CocoAnnotation, CocoCategory, CocoImage
+from sahi.utils.file import list_files_recursively, load_json, save_json
+from tqdm import tqdm
 
 
-class labelme2coco(object):
-    def __init__(self, labelme_folder='', save_json_path='./new.json'):
-        """
-        Args:
-            labelme_folder: folder that contains labelme annotations and image files
-            save_json_path: path for coco json to be saved
-        """
-        self.save_json_path = save_json_path
-        self.images = []
-        self.categories = []
-        self.annotations = []
-        self.label = []
-        self.annID = 1
-        self.height = 0
-        self.width = 0
-
-        # create save dir
-        save_json_dir = os.path.dirname(save_json_path)
-        create_dir(save_json_dir)
-
-        # get json list
-        _, labelme_json = list_jsons_recursively(labelme_folder)
-        self.labelme_json = labelme_json
-
-        self.save_json()
-
-    def data_transfer(self):
-        for num, json_path in enumerate(self.labelme_json):
-            with open(json_path, 'r') as fp:
-                # load json
-                data = json.load(fp)
-#                (prefix, res) = os.path.split(json_path)
-#                (file_name, extension) = os.path.splitext(res)
-                self.images.append(self.image(data, num, json_path))
-                for shapes in data['shapes']:
-                    label = shapes['label']
-                    if label not in self.label:
-                        self.categories.append(self.category(label))
-                        self.label.append(label)
-                    points = shapes['points']
-                    self.annotations.append(self.annotation(points, label, num))
-                    self.annID += 1
-
-    def image(self, data, num, json_path):
-        image = {}
-        # get image path
-        _, img_extension = os.path.splitext(data["imagePath"])
-        image_path = json_path.replace(".json", img_extension)
-        img_shape = read_image_shape_as_dict(image_path)
-        height, width = img_shape['height'], img_shape['width']
-
-        image['height'] = height
-        image['width'] = width
-        image['id'] = int(num + 1)
-        image['file_name'] = image_path
-
-        self.height = height
-        self.width = width
-
-        return image
-
-    def category(self, label):
-        category = {}
-        category['supercategory'] = label
-        category['id'] = int(len(self.label) + 1)
-        category['name'] = label
-
-        return category
-
-    def annotation(self, points, label, num):
-        annotation = {}
-        annotation['iscrowd'] = 0
-        annotation['image_id'] = int(num + 1)
-
-        annotation['bbox'] = list(map(float, self.getbbox(points)))
-
-        # coarsely from bbox to segmentation
-        x = annotation['bbox'][0]
-        y = annotation['bbox'][1]
-        w = annotation['bbox'][2]
-        h = annotation['bbox'][3]
-        annotation['segmentation'] = [np.asarray(points).flatten().tolist()]
-
-        annotation['category_id'] = self.getcatid(label)
-        annotation['id'] = int(self.annID)
-        # add area info
-        annotation['area'] = self.height * self.width  # the area is not used for detection
-        return annotation
-
-    def getcatid(self, label):
-        for categorie in self.categories:
-            if label == categorie['name']:
-                return categorie['id']
-            # if label[1]==categorie['name']:
-            #     return categorie['id']
-        return -1
-
-    def getbbox(self,points):
-        # img = np.zeros([self.height,self.width],np.uint8)
-        # cv2.polylines(img, [np.asarray(points)], True, 1, lineType=cv2.LINE_AA)
-        # cv2.fillPoly(img, [np.asarray(points)], 1)
-        polygons = points
-        mask = self.polygons_to_mask([self.height, self.width], polygons)
-        return self.mask2box(mask)
-
-    def mask2box(self, mask):
-        # np.where(mask==1)
-        index = np.argwhere(mask == 1)
-        rows = index[:, 0]
-        clos = index[:, 1]
-
-        left_top_r = np.min(rows)  # y
-        left_top_c = np.min(clos)  # x
-
-        right_bottom_r = np.max(rows)
-        right_bottom_c = np.max(clos)
-
-        return [left_top_c, left_top_r, right_bottom_c-left_top_c, right_bottom_r-left_top_r]  # [x1,y1,w,h] for coco box format
-
-    def polygons_to_mask(self, img_shape, polygons):
-        mask = np.zeros(img_shape, dtype=np.uint8)
-        mask = PIL.Image.fromarray(mask)
-        xy = list(map(tuple, polygons))
-        PIL.ImageDraw.Draw(mask).polygon(xy=xy, outline=1, fill=1)
-        mask = np.array(mask, dtype=bool)
-        return mask
-
-    def data2coco(self):
-        data_coco = {}
-        data_coco['images'] = self.images
-        data_coco['categories'] = self.categories
-        data_coco['annotations'] = self.annotations
-        return data_coco
-
-    def save_json(self):
-        self.data_transfer()
-        self.data_coco = self.data2coco()
-
-        json.dump(self.data_coco, open(self.save_json_path, 'w', encoding='utf-8'), indent=4, separators=(',', ': '), cls=MyEncoder)
+class labelme2coco:
+    def __init__(self):
+        raise RuntimeError(
+            "Use labelme2coco.convert() or labelme2coco.get_coco_from_labelme_folder() instead."
+        )
 
 
-# type check when save json files
-class MyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            return super(MyEncoder, self).default(obj)
+def get_coco_from_labelme_folder(
+    labelme_folder: str, coco_category_list: List = None
+) -> Coco:
+    """
+    Args:
+        labelme_folder: folder that contains labelme annotations and image files
+        coco_category_list: start from a predefined coco cateory list
+    """
+    # get json list
+    _, abs_json_path_list = list_files_recursively(labelme_folder, contains=[".json"])
+    labelme_json_list = abs_json_path_list
+
+    # init coco object
+    coco = Coco()
+
+    if coco_category_list is not None:
+        coco.add_3fdc_from_coco_category_list(coco_category_list)
+
+    # parse labelme annotations
+    category_ind = 0
+    for json_path in tqdm(
+        labelme_json_list, "Converting labelme annotations to COCO format"
+    ):
+        data = load_json(json_path)
+        # get image size
+        image_path = str(Path(labelme_folder) / data["imagePath"])
+        width, height = Image.open(image_path).size
+        # init coco image
+        coco_image = CocoImage(file_name=data["imagePath"], height=height, width=width)
+        # iterate over annotations
+        for shape in data["shapes"]:
+            # set category name and id
+            category_name = shape["label"]
+            category_id = None
+            for (
+                coco_category_id,
+                coco_category_name,
+            ) in coco.category_mapping.items():
+                if category_name == coco_category_name:
+                    category_id = coco_category_id
+                    break
+            # add category if not present
+            if category_id is None:
+                category_id = category_ind
+                coco.add_category(CocoCategory(id=category_id, name=category_name))
+                category_ind += 1
+            # parse bbox/segmentation
+            if shape["shape_type"] == "rectangle":
+                x1 = shape["points"][0][0]
+                y1 = shape["points"][0][1]
+                x2 = shape["points"][1][0]
+                y2 = shape["points"][1][1]
+                coco_annotation = CocoAnnotation(
+                    bbox=[x1, y1, x2 - x1, y2 - y1],
+                    category_id=category_id,
+                    category_name=category_name,
+                )
+            elif shape["shape_type"] == "polygon":
+                segmentation = [np.asarray(shape["points"]).flatten().tolist()]
+                coco_annotation = CocoAnnotation(
+                    segmentation=segmentation,
+                    category_id=category_id,
+                    category_name=category_name,
+                )
+            else:
+                raise NotImplementedError(
+                    f'shape_type={shape["shape_type"]} not supported.'
+                )
+            coco_image.add_annotation(coco_annotation)
+        coco.add_image(coco_image)
+
+    return coco
 
 
 if __name__ == "__main__":
     labelme_folder = "tests/data/labelme_annot"
-    save_json_path = "tests/data/test_coco.json"
-    labelme2coco(labelme_folder, save_json_path)
+    coco = get_coco_from_labelme_folder(labelme_folder)
